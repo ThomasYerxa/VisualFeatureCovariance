@@ -23,7 +23,7 @@ def load_data():
     """
     return None
 
-def lms_to_xyz(image):
+def rgb_to_xyz(image):
     """
     Takes an LMS image to the XYZ space via a matrix multiplication.
     Parameters:
@@ -64,11 +64,13 @@ def gen_pyramid(image, n_layers):
     Parameters:
     -----------
     image : numpy array of floating point values (corresponding to normalized
-            lumincance data). shape: (im, im)
+            lumincance data). shape: (n_rows, n_cols)
+    n_layers : height of the gaussian pyramid generated
+
 
     Returns:
     --------
-    pyr : a list of diff
+    pyr : a list of different compresssions of image; Length: n_layers
     """
     # Discrete approximation to Gaussian Filter with sigma = 1
     G = [[1, 4, 7, 4, 1],
@@ -91,27 +93,37 @@ def gen_pyramid(image, n_layers):
 def gen_cov(x_deriv, y_deriv, x_pos, y_pos):
     """
     Estimates the local covariance matrix of the derivative by averaging the
-    outer products of the vectors x_deriv[x_pos] * x_hat and
-    y_deriv[y_pos] * y_hat over a 5x5 region.
+    outer products of the gradient vectors over a 5x5 region
+
 
     Parameters:
     -----------
+    x_deriv :
+    y_deriv :
+    x_pos :
+    y_pos :
 
     Return:
     -------
+    T : orientation tensor for (x_pos, y_pos); shape:
     """
-    avg = np.zeros(5, 5)
+    T = np.zeros(2, 2)
+
     for i in range(5):
         for j in range(5):
+            # calculate the outer product between the gradient vectors at two
+            # nearpy positions
             xx = x_deriv[x_pos] * x_deriv[x_pos + 2 - i]
             xy = x_deriv[x_pos] * y_deriv[x_pos + 2 - j]
             yx = y_deriv[y_pos] * x_deriv[x_pos + 2 - i]
             yy = y_deriv[y_pos] * y_deriv[x_pos + 2 - j]
 
-            avg += np.array([[xx, xy],[yx, yy]])
-    avg = avg / 25.0
+            T += np.array([[xx, xy],[yx, yy]])
 
-    return avg
+    # Average theese outer products to estimate the local covariance matrix
+    T = T / 25.0
+
+    return T
 
 
 def extract_features(orientation_tensor):
