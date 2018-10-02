@@ -39,20 +39,14 @@ G = G_re + 1i * G_im;
 
 % Apply filter bank to each image, summing the response values for each 
 % image.
-mag = conv2(I(:, :, 1),G(:,:, 1));
-mag = abs(mag);
 nFilters = n_waves*n_theta;
 
-% Because the preliminary implementation calculates PDFs by summing 
-% response intensities, the response to each image does not need to be
-% stored separately. This will probably need to be fixed in the future. 
+[xSize, ySize] = size(conv2(I(:, :, l), G(:, :, k)));
+mag = zeros([xSize, ySize, nFilters, nImages]);
+
 for k = 1:nFilters
-    mag(:,:,k) = conv2(I(:, :, 1), G(:, :, k));
-    for l = 2:nImages
-         current = conv2(I(:, :, l), G(:, :, k));
-         current = abs(current);
-         mag(:, :, k) = mag(:, :, k) + current; 
-         (k-1)*nImages + l; 
+    for l = 1:nImages
+         mag(:, :, k, l) = mag(:, :, k, l) + abs(conv2(I(:, :, l), G(:, :, k)));
     end   
 end
 

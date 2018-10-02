@@ -79,7 +79,7 @@ II(:,:,3) = a_B.*(b.^I(:,:,3)-1);
 
 %Exposure Time Stamp
 ET = info(1).ImageDescription(8:length(info(1).ImageDescription)); % Exposure Time
-display(['Exposure time = ' ET 'secs']);
+%display(['Exposure time = ' ET 'secs']);
 II = II./str2double(ET);
 
 rows=size(II,1); cols=size(II,2);
