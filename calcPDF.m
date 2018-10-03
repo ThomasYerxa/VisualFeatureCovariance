@@ -27,14 +27,12 @@
 function [PDF] = calcPDF(responses, frequencies, orientations)
 
 % initialize all counts to zero
-n_theta = size(orientations);
-n_theta = n_theta(2);
-n_f = size(frequencies);
-n_f = n_f(2);
-prob_joint = zeros(n_theta,n_f);
-prob_f = zeros(1,n_f);
-prob_theta = zeros(1, n_theta);
-total = 0.0;
+n_theta     = size(orientations,2);
+n_f         = size(frequencies,2);
+prob_joint  = zeros(n_theta,n_f);
+prob_f      = zeros(1,n_f);
+prob_theta  = zeros(1, n_theta);
+total       = 0.0; % tracker used for normalization
 winnerTakeAll = true; 
 [xSize, ySize, nFilters, nImages] = size(responses);
 
@@ -45,9 +43,9 @@ if winnerTakeAll
     for n = 1:nImages
         for x = 1:xSize
             for y = 1:ySize
-                r = squeeze(responses(x, y, :, n));
+                r                   = squeeze(responses(x, y, :, n));
                 [~, max_filter_ind] = max(r); 
-                [f_ind, theta_ind] = ind2sub([n_f, n_theta], max_filter_ind); 
+                [f_ind, theta_ind]  = ind2sub([n_f, n_theta], max_filter_ind); 
                 prob_joint(theta_ind, f_ind) = prob_joint(theta_ind, f_ind) + 1;
                 prob_f(f_ind) = prob_f(f_ind) + 1; 
                 prob_theta(theta_ind) = prob_theta(theta_ind) + 1;
@@ -62,11 +60,11 @@ else
     for j = 1:nImages
         for k = 1:n_theta
             for l = 1:n_f
-                index = (k-1)*n_f + l;
-                filterScore = sum(responses(:,:,index, j), 'all');
+                index           = (k-1)*n_f + l;
+                filterScore     = sum(responses(:,:,index, j), 'all');
                 prob_joint(k, l) = prob_joint(k, l) + filterScore; 
-                prob_f(l) = prob_f(l) + filterScore; 
-                prob_theta(k) = prob_theta(k) + filterScore;  
+                prob_f(l)       = prob_f(l) + filterScore; 
+                prob_theta(k)   = prob_theta(k) + filterScore;  
                 total = total + filterScore; 
             end
         end
