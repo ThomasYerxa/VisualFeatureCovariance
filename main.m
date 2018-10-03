@@ -25,6 +25,7 @@ psi = 0.0;
 %
 G_re = gabor_fn(bw, ar, psi, lambda(1), orientation(1));
 G_im = gabor_fn(bw, ar, psi + pi/2, lambda(1), orientation(1));
+
 for k = 1:n_theta
     for l = 1:n_waves
         if not(and(k == 1, l == 1))
@@ -34,6 +35,29 @@ for k = 1:n_theta
     end
 end
 
+% draw filter bank
+fig_re = figure;
+set(fig_re, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
+set(fig_re, 'name', 'Filter bank -- real')
+
+fig_im = figure;
+set(fig_im, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
+set(fig_im, 'name', 'Filter bank -- imag')
+
+for x = 1:size(G_re,3)
+    figure(fig_re); hold on;
+    subplot(5,5,x); hold on;
+    imagesc(G_re(:,:,x));
+    axis image off;
+    colorbar;
+    
+    figure(fig_im); hold on;
+    subplot(5,5,x); hold on;
+    imagesc(G_im(:,:,x));
+    axis image off;
+    colorbar;
+end
+    
 
 G = G_re + 1i * G_im; 
 
