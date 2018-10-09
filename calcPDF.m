@@ -24,7 +24,7 @@
 % each distribution. 
 %-------------------------------------------------------------------------
 
-function [PDF] = calcPDF(responses, frequencies, orientations)
+function [PDF_j, PDF_t, PDF_f, PDF_s] = calcPDF(responses, frequencies, orientations)
 
 % initialize all counts to zero
 n_theta     = size(orientations,2);
@@ -33,8 +33,9 @@ prob_joint  = zeros(n_theta,n_f);
 prob_f      = zeros(1,n_f);
 prob_theta  = zeros(1, n_theta);
 total       = 0.0; % tracker used for normalization
-winnerTakeAll = true; 
-[xSize, ySize, nFilters, nImages] = size(responses);
+winnerTakeAll = false; 
+[xSize, ySize, n_f, n_theta, nImages] = size(responses);
+nFilters = n_f * n_theta;
 
 if winnerTakeAll
     % for each filter response (one per (x,y) coordinate per image)
@@ -43,13 +44,21 @@ if winnerTakeAll
     for n = 1:nImages
         for x = 1:xSize
             for y = 1:ySize
-                r                   = squeeze(responses(x, y, :, n));
+                
+                % reshape unrolls by traversing down columns
+                % [[a,b];[c,d]]-->[a, c, b, d]. 
+                % This matches the convention of ind2sub, so we recover 
+                % the frequency/orientation index of the filter that caused
+                % the maximal response at position (x, y) in image n. 
+                r                   = squeeze(responses(x, y, :, :, n));
+                r                   = reshape(r, [1, nFilters]);
                 [~, max_filter_ind] = max(r); 
                 [f_ind, theta_ind]  = ind2sub([n_f, n_theta], max_filter_ind); 
+                
                 prob_joint(theta_ind, f_ind) = prob_joint(theta_ind, f_ind) + 1;
-                prob_f(f_ind) = prob_f(f_ind) + 1; 
-                prob_theta(theta_ind) = prob_theta(theta_ind) + 1;
-                total = total + 1.0;
+                prob_f(f_ind)                = prob_f(f_ind) + 1; 
+                prob_theta(theta_ind)        = prob_theta(theta_ind) + 1;
+                total                        = total + 1.0;
             end
         end
     end
@@ -60,12 +69,11 @@ else
     for j = 1:nImages
         for k = 1:n_theta
             for l = 1:n_f
-                index           = (k-1)*n_f + l;
-                filterScore     = sum(responses(:,:,index, j), 'all');
+                filterScore      = sum(responses(:,:, l, k, j), 'all');
                 prob_joint(k, l) = prob_joint(k, l) + filterScore; 
-                prob_f(l)       = prob_f(l) + filterScore; 
-                prob_theta(k)   = prob_theta(k) + filterScore;  
-                total = total + filterScore; 
+                prob_f(l)        = prob_f(l) + filterScore; 
+                prob_theta(k)    = prob_theta(k) + filterScore;  
+                total            = total + filterScore; 
             end
         end
     end
@@ -79,7 +87,9 @@ PDF_f = prob_f / total
 
 % if the two distributions are separale PDF_joint = PDF_sep
 PDF_sep = (PDF_theta' * PDF_f)
-
-[PDF] = PDF_joint;
+PDF_j = PDF_joint;
+PDF_t = PDF_theta;
+PDF_f = PDF_f;
+PDF_s = PDF_sep; 
 
 end

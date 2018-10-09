@@ -15,24 +15,51 @@
 %-------------------------------------------------------------------------
 
 function [M] = loadImages()
-% load .TIF files into struct
-images = dir('*.TIF');
-nImages = length(images); 
 
-debug = true;
-if debug
-    nImages = 2; % reset nImages to 2 to reduce runtime. 
+loadCode = 0;
+debug = true; 
+
+if loadCode == 0
+   % load .TIF files into struct
+    images = dir('*.TIF');
+    nImages = length(images); 
+    if debug
+        nImages = 2; % reset nImages to 2 to reduce runtime. 
+    end
+    % Collect LMS value arrays, extract M channel (which encodes intensity)
+    firstName = images(1).name; 
+    [LMS] = rgb2lms(firstName); 
+    [M] = LMS(:,:,2);
     
-% Collect LMS value arrays, extract M channel (which encodes intensity)
-firstName = images(1).name; 
-[LMS] = rgb2lms(firstName); 
-[M] = LMS(:,:,2);
+    for i=2:nImages
+        if i == 16
+            continue
+        end
+        currentFileName = images(i).name;
+        LMS(:, :, :, i) = rgb2lms(currentFileName); 
+        M(:, :, i) = LMS(:, :, 2, i);  
+    end  
+    return;
+end
 
-for i=2:nImages
-    currentFileName = images(i).name;
-    LMS(:, :, :, i) = rgb2lms(currentFileName); 
-    M(:, :, i) = LMS(:, :, 2, i);  
-end  
+if loadCode == 1
+    nImages = 10; 
+    if debug
+        nImages = 2;
+    end
+    for i=1:nImages
+       if i < 10
+           temp = load(['noiseim_00' num2str(i)]);
+       else 
+           temp = load('noiseim_010');
+       end
+       M(:, :, i) = temp.im; 
+    end
+    return 
+end
+
+
+
 
 end
 

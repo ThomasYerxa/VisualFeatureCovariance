@@ -13,7 +13,7 @@ sz=fix(8*max(sigma_y,sigma_x));
 if mod(sz,2)==0, sz=sz+1;end
 
 % alternatively, use a fixed size
-sz = 60;
+sz = 80;
  
 [x y]=meshgrid(-fix(sz/2):fix(sz/2),fix(sz/2):-1:fix(-sz/2));
 % x (right +)
@@ -22,6 +22,11 @@ sz = 60;
 % Rotation 
 x_theta=x*cos(theta)+y*sin(theta);
 y_theta=-x*sin(theta)+y*cos(theta);
- 
+
+normalize = true; 
 gb=exp(-0.5*(x_theta.^2/sigma_x^2+y_theta.^2/sigma_y^2)).*cos(2*pi/lambda*x_theta+psi);
+if normalize
+    norm = sum(gb.^2, 'all');
+    gb = gb./norm; 
+end
 %imshow(gb/2+0.5);
