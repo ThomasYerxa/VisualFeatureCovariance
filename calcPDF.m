@@ -8,7 +8,7 @@
 % Parameters: 
 % -----------
 %  responses : The set of filter responses (summed over images)
-%              size: (sz_conv1, sz_conv2, nFilters, nImages)
+%              size: (sz_conv1, sz_conv2, n_f, n_theta, nImages)
 
 %  frequencies : the list of spatial frequencies used. 
 %                size: (1, n_frequencies)

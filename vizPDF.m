@@ -1,9 +1,28 @@
-% Visualize PDFs
-
+%-------------------------------------------------------------------------
+% Function for visualizing probability distributions.
+% 
+% Parameters: 
+% -----------
+%  PDF_j : the measured joint distribution. size: (n_orientation, n_f)
+%  PDF_t : the measured distribution over theta. size: (n_orientation)
+%  PDF_f : the measured distribution over f. size:  (n_f)
+%  PDF_s : the 'separable 'joint distribution. size: (n_orientation, n_f)
+%  f : the spatial frequencies used. size: (n_f), units: 1/pixels
+%  orientation : the orientations used. size: (n_orientation), units:
+%  radians
+%
+% Returns: 
+% ---------
+% Returns 0. (Not for use)
+%-------------------------------------------------------------------------
 
 function a = vizPDF(PDF_j, PDF_t, PDF_f, PDF_s, f,orientation)
 
+% set return value (arbitrary)
+a = 0;
+% convert orientation to degrees
 orientation = orientation * 360 /(2*pi); 
+% set logScale
 logScale = true; 
 
 % ---- FIRST FIGURE: Measured Joint PDF and outer product PDF side by side

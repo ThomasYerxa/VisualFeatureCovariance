@@ -26,7 +26,7 @@ y_theta=-x*sin(theta)+y*cos(theta);
 normalize = true; 
 gb=exp(-0.5*(x_theta.^2/sigma_x^2+y_theta.^2/sigma_y^2)).*cos(2*pi/lambda*x_theta+psi);
 if normalize
-    norm = sum(gb.^2, 'all');
+    norm = sum(gb.^2, 'all')^0.5;
     gb = gb./norm; 
 end
 %imshow(gb/2+0.5);

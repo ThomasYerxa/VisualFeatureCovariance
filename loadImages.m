@@ -1,7 +1,21 @@
 %-------------------------------------------------------------------------
-% Function for loading images from the McGill Colour Image Database. 
+% Function for loading images.
+%
+% Functionality depends on the value of loadCode and the working directory:
+%
+% loadCode = 0: load images from the McGill Colour Image Database. 
 % Loads all .TIF files in the working directory and returns them as 
-% an array of intensity values.
+% an array of intensity values. when run the working directory must
+% contain .TIF files. 
+%
+% loadCode = 1: load Noise images from NS1,2,3 files. 
+% Loads all .mat files in the working directory and returns them as 
+% an array of intensity values. Working directory must be NS1, NS2, or NS3
+%
+% loadCode = 2: load images from the Van Hateren Database. 
+% Loads all .iml files in the working directory and returns them as 
+% an array of intensity values. Working directory must contain .iml files.
+%
 % 
 % Parameters: 
 % -----------
@@ -16,7 +30,7 @@
 
 function [M] = loadImages()
 
-loadCode = 0;
+loadCode = 2;
 debug = true; 
 
 if loadCode == 0
@@ -58,8 +72,28 @@ if loadCode == 1
     return 
 end
 
-
-
+if loadCode == 2
+   w = 1536; h = 1024;
+   % load all .iml files in current directory
+   images = dir('*.iml');
+   nImages = length(images); 
+   if debug
+       nImages = 2; % reset nImages to 2 to reduce runtime. 
+   end
+   firstName = images(1).name; 
+   f = fopen(firstName, 'rb','ieee-be');
+   temp = fread(f, [w, h], 'uint16');
+   M(:, :, 1) = temp(4:1532, 4:1020); 
+   
+   for i=2:nImages
+      name = images(i).name;
+      f = fopen(name, 'rb', 'ieee-be');
+      temp = fread(f, [w, h], 'uint16'); 
+      M(:, :, i) = temp(4:1532, 4:1020);  
+   end
+   
+   return;
+end
 
 end
 
