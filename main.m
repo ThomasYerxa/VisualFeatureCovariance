@@ -25,17 +25,23 @@ if plotting
     end
 end
 
-% different sets of wavelengths may be interesting on different data sets. 
-% options here are bunched in different ranges and a debug option. 
-lambda_n     = [40, 39, 38, 37, 35, 30, 20, 5]; 
-lambda_hf    = [40, 35, 30, 25, 20, 10, 5, 2];
-lambda_debug = [40, 20, 10];
+% choose frequencies to be linearlly or logarithmically spaced
+% choose n_f to be a low value for debugging. 
+logSpacing = false;
+if logSpacing
+    minExp = -1.5;
+    maxExp =  1.5;
+    n_waves    = 10;
+    f      = logspace(minExp, maxExp, n_waves)
+else
+    minVal = 0.05; 
+    maxVal = 20; 
+    n_waves    = 10; 
+    f      = linspace(minVal, maxVal, n_waves);
+end
 
-% choose wavelength option
-lambda      = lambda_debug; 
-n_waves     = size(lambda, 2);
-one         = ones(size(lambda));
-f           = one ./ lambda; % Spatial frequency is inverse of wavelength
+% wavelength is inverse of spatial frequency. 
+lambda = flip(1./f);
 
 % Orientations in degrees. Includes a regular sampling of orientations
 % and a debug option. 
@@ -43,7 +49,7 @@ orientation_f = [0.0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5] * 2 * pi /360;
 orientation_debug = [0.0,45.0, 90.0] * 2 * pi /360 ;
 
 % choose orientation option 
-orientation = orientation_debug;
+orientation = orientation_f;
 n_theta     = size(orientation, 2);
 
 % Generate filter bank
@@ -98,7 +104,7 @@ if plotting
     end
 end
 
-% make complex filter
+% make complex filter. clear i to make sure you are using sqrt(-1). 
 clear i;
 G = G_re + 1i * G_im;
 
