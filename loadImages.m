@@ -30,7 +30,7 @@
 
 function [M] = loadImages()
 
-loadCode = 2;
+loadCode = 1;
 debug = true; 
 
 if loadCode == 0
@@ -38,7 +38,7 @@ if loadCode == 0
     images = dir('*.TIF');
     nImages = length(images); 
     if debug
-        nImages = 2; % reset nImages to 2 to reduce runtime. 
+        nImages = 10; % reset nImages to 2 to reduce runtime. 
     end
     % Collect LMS value arrays, extract M channel (which encodes intensity)
     firstName = images(1).name; 
@@ -52,6 +52,7 @@ if loadCode == 0
         currentFileName = images(i).name;
         LMS(:, :, :, i) = rgb2lms(currentFileName); 
         M(:, :, i) = LMS(:, :, 2, i);  
+        
     end  
     return;
 end

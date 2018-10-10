@@ -23,8 +23,19 @@ a = 0;
 % convert orientation to degrees
 orientation = orientation * 360 /(2*pi); 
 % set logScale
-logScale = true; 
+logScale = false; 
 
+% generate tick positions for 2-D plots. One tick per sampled value. 
+nX     = size(f, 2);
+nY     = size(orientation, 2);
+xticks = [0.5];
+yticks = [0.5];
+for x = 2:nX
+    xticks(x) = xticks(x-1) + 1.0;
+end
+for y = 2:nY
+    yticks(y) = xticks(y-1) + 1.0;
+end
 % ---- FIRST FIGURE: Measured Joint PDF and outer product PDF side by side
 fig_joint = figure;
 
@@ -32,18 +43,20 @@ set(fig_joint, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
 set(fig_joint, 'name', 'Joint Distributions');
 
 ax1 = subplot(1,2,1); 
-imagesc(PDF_j); colorbar; 
-set(ax1, 'xtick', [], 'ytick', []);
+
+imagesc(ax1, PDF_j); colorbar; 
+set(ax1, 'xtick', xticks, 'ytick', yticks);
+set(ax1, 'xticklabels', f, 'yticklabels', orientation); 
 title('Measured Joint Distribution');
-xlabel('Frequency (1/pixels)');
+xlabel('Frequency (cycles/pixels)');
 ylabel('Orientation (Degrees)');
 
 ax2 = subplot(1,2,2); 
-imagesc(PDF_s); colorbar;
-%axis image; 
-set(ax2, 'xtick', [], 'ytick', []);
+imagesc(ax2, PDF_s); colorbar;
+set(ax2, 'xtick', xticks, 'ytick', yticks);
+set(ax2, 'xticklabels', f, 'yticklabels', orientation); 
 title('Separable Joint Distribution')
-xlabel('Frequency (1/pixels)');
+xlabel('Frequency (cycles/pixels)');
 ylabel('Orientation (Degrees)');
 % ---- END FIRST FIGURE 
 
@@ -59,7 +72,7 @@ plot(ax3, orientation, PDF_t, '*');
 axis([-inf inf 0 1]);
 xlabel('Orientation (Degrees)');
 ylabel('Probability');
-set(ax3, 'xtick', [0.0, 45.0, 90.0, 135.0], 'ytick', [0.0, 0.5]);
+set(ax3, 'xtick', [0.0, 45.0, 90.0, 135.0], 'ytick', [0.0, 0.5, 1.0]);
 title('PDF for Orientation');
 
 % Second axis contains PDF over spatial frequency. 
@@ -70,9 +83,9 @@ if logScale
     set(ax4, 'XScale', 'log', 'YScale', 'log'); 
 end
 axis([-inf inf 0 1]);
-set(ax4, 'xtick', [], 'ytick', [0.0, 0.5]);
+set(ax4, 'xtick', f, 'ytick', [0.0, 0.5, 1.0]);
 title('PDF for Frequency');
-xlabel('Frequency (1/pixels)');
+xlabel('Frequency (cycles/pixels)');
 ylabel('Probability');
 % ---- END SECOCND FIGURE 
 

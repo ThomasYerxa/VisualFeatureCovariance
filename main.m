@@ -28,8 +28,8 @@ end
 % different sets of wavelengths may be interesting on different data sets. 
 % options here are bunched in different ranges and a debug option. 
 lambda_n     = [40, 39, 38, 37, 35, 30, 20, 5]; 
-lambda_hf    = [30, 20, 10, 5, 4, 3, 2, 1];
-lambda_debug = [40, 20];
+lambda_hf    = [40, 35, 30, 25, 20, 10, 5, 2];
+lambda_debug = [40, 20, 10];
 
 % choose wavelength option
 lambda      = lambda_debug; 
@@ -40,7 +40,7 @@ f           = one ./ lambda; % Spatial frequency is inverse of wavelength
 % Orientations in degrees. Includes a regular sampling of orientations
 % and a debug option. 
 orientation_f = [0.0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5] * 2 * pi /360;
-orientation_debug = [0.0, 90] * 2 * pi /360 ;
+orientation_debug = [0.0,45.0, 90.0] * 2 * pi /360 ;
 
 % choose orientation option 
 orientation = orientation_debug;
@@ -99,6 +99,7 @@ if plotting
 end
 
 % make complex filter
+clear i;
 G = G_re + 1i * G_im;
 
 % Apply filter bank to each image, summing the response values for each
@@ -108,33 +109,85 @@ G = G_re + 1i * G_im;
 mag             = zeros([xSize, ySize, n_waves, n_theta, nImages]);
 
 index = 0;
-for k = 1:n_theta
-    for l = 1:n_waves
-        index = index + 1;
-        if plotting
-            figure; hold on;
-            set(gcf, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
-            set(gcf, 'name', ['F ' num2str(index)])
-        end
-    
-        for j = 1:nImages
-            % get responses of filter (l, k) to image j. Save to mag
-            conv_tmp           = abs(conv2(I(:, :, j), G(:, :, l, k),'valid'));
-            mag(:, :, l, k, j) = conv_tmp;
-            % NEED TO FIX FOR NEW FORMAT OF G
+% When working with a large number of images, we may not be able to store
+% evevry convolution in one very large matrix (too much memory is used).
+% In this case we partition the PDF calculation into batches of 10 images.
+
+% choose whether or not to partition. 
+partition = false;
+for j=1:nImages
+    for k = 1:n_theta
+        for l = 1:n_waves
+            index = index + 1;
             if plotting
-                subplot(5,5,j); hold on;
-                imagesc(conv_tmp);
-                axis image off;
-                colorbar;
+                figure; hold on;
+                set(gcf, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
+                set(gcf, 'name', ['F ' num2str(index)])
             end
+            
+            % if partition is true the size of mag nevery gros above
+            % [xSize , ySize , n_f , n_theta , 10]
+            if partition
+                % get responses of filter (l, k) to image j. Save to mag
+                conv_tmp           = abs(conv2(I(:, :, j), G(:, :, l, k),'valid'));
+                mag(:, :, l, k, mod(j-1,10)+1) = conv_tmp;
+                  
+            else
+                % note the last index of mag is not bounded modularly. 
+                % get responses of filter (l, k) to image j. Save to mag
+                conv_tmp           = abs(conv2(I(:, :, j), G(:, :, l, k),'valid'));
+                mag(:, :, l, k, j) = conv_tmp;
+
+                if plotting
+                    subplot(5,5,j); hold on;
+                    imagesc(conv_tmp);
+                    axis image off;
+                    colorbar;
+                end
+            end 
         end
     end
-       
+    
+    % check to see whether this is an iteration at which we should
+    % calculate an intermediate PDF. Happens at j%10=0 and last image.
+    if partition
+        [j_temp, t_temp, f_temp, s_temp] = calcPDF(mag, f, orientation); 
+        % adjust weight if last partition is not length 10
+        if mod(j, 10) == 0
+            weight = 10;
+            PDF_j = PDF_j + j_temp*weight; 
+            PDF_t = PDF_j + t_temp*weight; 
+            PDF_f = PDF_j + f_temp*weight; 
+            PDF_s = PDF_j + s_temp*weight; 
+            clear mag; 
+        end 
+        if j == nImages
+            % the last intermediate PDF may have been calculalted using <
+            % 10 images. Reset its weight in the sum accordingly. 
+            weight = mod(nImages, 10);
+            PDF_j = PDF_j + j_temp*weight; 
+            PDF_t = PDF_j + t_temp*weight; 
+            PDF_f = PDF_j + f_temp*weight; 
+            PDF_s = PDF_j + s_temp*weight; 
+        end
+    end    
 end
 
 % Calculate and visualize joint PDF from filter responses
-[PDF_j, PDF_t, PDF_f, PDF_s] = calcPDF(mag, f, orientation);
+
+% if partition is on, we take the final PDF to be the average of all 
+% of the intermediate PDF values that have already been summed. 
+if partition
+    PDF_j = PDF_j/nImages; 
+    PDF_t = PDF_t/nImages; 
+    PDF_f = PDF_f/nImages; 
+    PDF_s = PDF_s/nImages; 
+    
+else
+    % else we calculate the total pdf using every filter response. 
+    [PDF_j, PDF_t, PDF_f, PDF_s] = calcPDF(mag, f, orientation); 
+end
+
 
 vizPDF(PDF_j, PDF_t, PDF_f, PDF_s, f,orientation);
 
