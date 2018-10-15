@@ -22,6 +22,8 @@ function a = vizPDF(PDF_j, PDF_t, PDF_f, PDF_s, f,orientation)
 a = 0;
 % convert orientation to degrees
 orientation = orientation * 360 /(2*pi); 
+% truncate f to 3 decimal places for display
+f = f - rem(f, 0.001);
 % set logScale
 logScale = false; 
 
@@ -46,7 +48,8 @@ ax1 = subplot(1,2,1);
 
 imagesc(ax1, PDF_j); colorbar; 
 set(ax1, 'xtick', xticks, 'ytick', yticks);
-set(ax1, 'xticklabels', f, 'yticklabels', orientation); 
+set(ax1, 'xticklabels', f, 'yticklabels', orientation);
+xtickangle(ax1, 45);
 title('Measured Joint Distribution');
 xlabel('Frequency (cycles/pixels)');
 ylabel('Orientation (Degrees)');
@@ -55,6 +58,7 @@ ax2 = subplot(1,2,2);
 imagesc(ax2, PDF_s); colorbar;
 set(ax2, 'xtick', xticks, 'ytick', yticks);
 set(ax2, 'xticklabels', f, 'yticklabels', orientation); 
+xtickangle(ax2, 45);
 title('Separable Joint Distribution')
 xlabel('Frequency (cycles/pixels)');
 ylabel('Orientation (Degrees)');
@@ -85,6 +89,7 @@ end
 axis([-inf inf 0 1]);
 set(ax4, 'xtick', f, 'ytick', [0.0, 0.5, 1.0]);
 title('PDF for Frequency');
+xtickangle(ax4, 45);
 xlabel('Frequency (cycles/pixels)');
 ylabel('Probability');
 % ---- END SECOCND FIGURE 

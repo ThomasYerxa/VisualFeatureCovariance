@@ -29,19 +29,19 @@ end
 % choose n_f to be a low value for debugging. 
 logSpacing = false;
 if logSpacing
-    minExp = -1.5;
-    maxExp =  1.5;
-    n_waves    = 10;
-    f      = logspace(minExp, maxExp, n_waves)
+    minExp  = -1.5;
+    maxExp  =  1.5;
+    n_waves = 10;
+    lambda       = logspace(minExp, maxExp, n_waves);
 else
-    minVal = 0.05; 
-    maxVal = 20; 
-    n_waves    = 10; 
-    f      = linspace(minVal, maxVal, n_waves);
+    minVal  = 5; 
+    maxVal  = 40; 
+    n_waves = 10; 
+    lambda  = linspace(minVal, maxVal, n_waves);
 end
 
 % wavelength is inverse of spatial frequency. 
-lambda = flip(1./f);
+f = flip(1./lambda);
 
 % Orientations in degrees. Includes a regular sampling of orientations
 % and a debug option. 

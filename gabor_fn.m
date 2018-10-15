@@ -29,4 +29,11 @@ if normalize
     norm = sum(gb.^2, 'all')^0.5;
     gb = gb./norm; 
 end
+
+zero_sum = true; 
+initial_sum = sum(gb, 'all');
+if zero_sum
+   gb = gb - sum(gb, 'all')/(sz + 1)^2; 
+end
+final_sum = sum(gb, 'all');
 %imshow(gb/2+0.5);
