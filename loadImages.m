@@ -31,14 +31,14 @@
 function [M] = loadImages()
 
 loadCode = 1;
-debug = true; 
+debug    = false; 
 
 if loadCode == 0
    % load .TIF files into struct
     images = dir('*.TIF');
     nImages = length(images); 
     if debug
-        nImages = 10; % reset nImages to 2 to reduce runtime. 
+        nImages = 2; % reset nImages to 2 to reduce runtime. 
     end
     % Collect LMS value arrays, extract M channel (which encodes intensity)
     firstName = images(1).name; 
@@ -46,12 +46,14 @@ if loadCode == 0
     [M] = LMS(:,:,2);
     
     for i=2:nImages
-        if i == 16
+        % some files are mishaped. Skip them. 
+        if i == 16 | i == 33 | i == 35 | i == 49 | i == 60 | i == 64 | i == 79 | i == 103
             continue
         end
         currentFileName = images(i).name;
         LMS(:, :, :, i) = rgb2lms(currentFileName); 
         M(:, :, i) = LMS(:, :, 2, i);  
+        fclose('all');
         
     end  
     return;
@@ -95,6 +97,7 @@ if loadCode == 2
    
    return;
 end
+
 
 end
 

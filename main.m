@@ -5,6 +5,7 @@ clear all; close all;
 tic;
 
 plotting = false;
+use_gpu  = false;
 
 % Load images
 I = loadImages();
@@ -29,23 +30,22 @@ end
 % choose n_f to be a low value for debugging. 
 logSpacing = false;
 if logSpacing
-    minExp  = -1.5;
-    maxExp  =  1.5;
-    n_waves = 10;
-    lambda       = logspace(minExp, maxExp, n_waves);
+    filterSize = 80;
+    n_waves    = 8;
+    f          = logspace(1/filterSize,0.5, 8);
 else
-    minVal  = 5; 
-    maxVal  = 40; 
-    n_waves = 10; 
-    lambda  = linspace(minVal, maxVal, n_waves);
+    filterSize = 80;
+    n_waves    = 8;
+    f          = linspace(1/filterSize,0.5, 8);
+
 end
 
 % wavelength is inverse of spatial frequency. 
-f = flip(1./lambda);
+lambda = 1./f; 
 
 % Orientations in degrees. Includes a regular sampling of orientations
 % and a debug option. 
-orientation_f = [0.0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5] * 2 * pi /360;
+orientation_f     = [0.0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5] * 2 * pi /360;
 orientation_debug = [0.0,45.0, 90.0] * 2 * pi /360 ;
 
 % choose orientation option 
@@ -108,11 +108,16 @@ end
 clear i;
 G = G_re + 1i * G_im;
 
+% put G and I on GPU
+if use_gpu 
+    G_gpu = gpuArray(G);
+    I_gpu = gpuArray(I);
+end 
+
 % Apply filter bank to each image, summing the response values for each
 % image.
 
 [xSize, ySize]  = size(conv2(I(:, :, 1), G(:, :, 1, 1),'valid'));
-mag             = zeros([xSize, ySize, n_waves, n_theta, nImages]);
 
 index = 0;
 % When working with a large number of images, we may not be able to store
@@ -121,6 +126,11 @@ index = 0;
 
 % choose whether or not to partition. 
 partition = false;
+
+if partition == false
+    mag = zeros([xSize, ySize, n_waves, n_theta, nImages]);
+end
+
 for j=1:nImages
     for k = 1:n_theta
         for l = 1:n_waves
@@ -135,8 +145,14 @@ for j=1:nImages
             % [xSize , ySize , n_f , n_theta , 10]
             if partition
                 % get responses of filter (l, k) to image j. Save to mag
-                conv_tmp           = abs(conv2(I(:, :, j), G(:, :, l, k),'valid'));
-                mag(:, :, l, k, mod(j-1,10)+1) = conv_tmp;
+               if use_gpu
+                    conv_tmp                       = abs(conv2(I_gpu(:, :, j), G_gpu(:, :, l, k),'valid'));
+                    mag(:, :, l, k, mod(j-1,10)+1) = gather(conv_tmp);
+                    
+               else
+                    conv_tmp                       = abs(conv2(I(:, :, j), G(:, :, l, k),'valid'));
+                    mag(:, :, l, k, mod(j-1,10)+1) = conv_tmp;
+               end
                   
             else
                 % note the last index of mag is not bounded modularly. 

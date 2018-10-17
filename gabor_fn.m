@@ -6,6 +6,7 @@ function gb=gabor_fn(bw,gamma,psi,lambda,theta)
 % theta = angle in rad, [0 pi)
  
 sigma = lambda/pi*sqrt(log(2)/2)*(2^bw+1)/(2^bw-1);
+%sigma = 2.0; 
 sigma_x = sigma;
 sigma_y = sigma/gamma;
 
@@ -31,9 +32,8 @@ if normalize
 end
 
 zero_sum = true; 
-initial_sum = sum(gb, 'all');
 if zero_sum
    gb = gb - sum(gb, 'all')/(sz + 1)^2; 
 end
-final_sum = sum(gb, 'all');
+sum(gb, 'all'); 
 %imshow(gb/2+0.5);

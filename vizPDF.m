@@ -89,7 +89,7 @@ end
 axis([-inf inf 0 1]);
 set(ax4, 'xtick', f, 'ytick', [0.0, 0.5, 1.0]);
 title('PDF for Frequency');
-xtickangle(ax4, 45);
+xtickangle(ax4, 90);
 xlabel('Frequency (cycles/pixels)');
 ylabel('Probability');
 % ---- END SECOCND FIGURE 
