@@ -14,7 +14,7 @@ sz=fix(8*max(sigma_y,sigma_x));
 if mod(sz,2)==0, sz=sz+1;end
 
 % alternatively, use a fixed size
-sz = 80;
+sz = 100;
  
 [x y]=meshgrid(-fix(sz/2):fix(sz/2),fix(sz/2):-1:fix(-sz/2));
 % x (right +)
