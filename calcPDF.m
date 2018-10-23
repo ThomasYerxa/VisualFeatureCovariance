@@ -33,6 +33,16 @@ prob_joint  = zeros(n_theta,n_f);
 prob_f      = zeros(1,n_f);
 prob_theta  = zeros(1, n_theta);
 total       = 0.0; % tracker used for normalization
+
+use_gpu = false; 
+if use_gpu
+    prob_joint = gpuArray(prob_joint); 
+    prob_f     = gpuArray(prob_f);
+    prob_theta = gpuArray(prob_theta); 
+    total      = gpuArray(total);
+    
+end
+
 winnerTakeAll = false; 
 [xSize, ySize, n_f, n_theta, nImages] = size(responses);
 nFilters = n_f * n_theta;
@@ -81,12 +91,18 @@ end
     
     
 % normalize the distributions (and output results for now)
-PDF_joint = prob_joint / total
-PDF_theta = prob_theta / total
-PDF_f = prob_f / total 
+PDF_joint = prob_joint / total;
+PDF_theta = prob_theta / total;
+PDF_f = prob_f / total; 
+
+if use_gpu
+    PDF_joint = gather(PDF_joint);
+    PDF_theta = gather(PDF_theta); 
+    PDF_f     = gather(PDF_f);
+end 
 
 % if the two distributions are separale PDF_joint = PDF_sep
-PDF_sep = (PDF_theta' * PDF_f)
+PDF_sep = (PDF_theta' * PDF_f);
 PDF_j = PDF_joint;
 PDF_t = PDF_theta;
 PDF_f = PDF_f;

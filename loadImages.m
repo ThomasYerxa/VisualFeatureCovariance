@@ -30,15 +30,15 @@
 
 function [M] = loadImages()
 
-loadCode = 1;
-debug    = false; 
+loadCode = 0;
+debug    = true; 
 
 if loadCode == 0
    % load .TIF files into struct
     images = dir('*.TIF');
     nImages = length(images); 
     if debug
-        nImages = 2; % reset nImages to 2 to reduce runtime. 
+        nImages = 10; % reset nImages to 2 to reduce runtime. 
     end
     % Collect LMS value arrays, extract M channel (which encodes intensity)
     firstName = images(1).name; 

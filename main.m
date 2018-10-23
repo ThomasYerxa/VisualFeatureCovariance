@@ -34,9 +34,9 @@ if logSpacing
     n_waves    = 8;
     f          = logspace(1/filterSize,0.5, 8);
 else
-    filterSize = 80;
+    filterSize = 100;
     n_waves    = 8;
-    f          = linspace(1/filterSize,0.5, 8);
+    f          = linspace(3/filterSize,0.5, 8);
 
 end
 
@@ -149,6 +149,11 @@ for j=1:nImages
                     conv_tmp                       = abs(conv2(I_gpu(:, :, j), G_gpu(:, :, l, k),'valid'));
                     mag(:, :, l, k, mod(j-1,10)+1) = gather(conv_tmp);
                     
+                    % clear mag from GPU Memory, reset I and G
+                    gpuDevice(1);
+                    I_gpu = gpuArray(I);
+                    G_gpu = gpuArray(G); 
+                    
                else
                     conv_tmp                       = abs(conv2(I(:, :, j), G(:, :, l, k),'valid'));
                     mag(:, :, l, k, mod(j-1,10)+1) = conv_tmp;
@@ -173,9 +178,10 @@ for j=1:nImages
     % check to see whether this is an iteration at which we should
     % calculate an intermediate PDF. Happens at j%10=0 and last image.
     if partition
-        [j_temp, t_temp, f_temp, s_temp] = calcPDF(mag, f, orientation); 
+         
         % adjust weight if last partition is not length 10
         if mod(j, 10) == 0
+            [j_temp, t_temp, f_temp, s_temp] = calcPDF(mag, f, orientation);
             weight = 10;
             PDF_j = PDF_j + j_temp*weight; 
             PDF_t = PDF_j + t_temp*weight; 
@@ -186,6 +192,7 @@ for j=1:nImages
         if j == nImages
             % the last intermediate PDF may have been calculalted using <
             % 10 images. Reset its weight in the sum accordingly. 
+            [j_temp, t_temp, f_temp, s_temp] = calcPDF(mag, f, orientation);
             weight = mod(nImages, 10);
             PDF_j = PDF_j + j_temp*weight; 
             PDF_t = PDF_j + t_temp*weight; 
