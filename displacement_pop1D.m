@@ -40,7 +40,7 @@ if curve_shape == 0
     for n = 1:n_neurons
         h_n     = gaussian1D(means(n), std, n_neurons);
         % visualize tuning cuver over displaced domain
-        curve_n = h_n(s - f(s));
+        curve_n = h_n(s + f(s));
         plot(s, curve_n);
     end
     
