@@ -37,18 +37,37 @@ if curve_shape == 0
     m_x    = linspace(stim_range(1), stim_range(2), N_x);
     m_y    = linspace(stim_range(3), stim_range(4), N_y);
     
-    % Visualisation is achieved by adding the 2-D tuning curves together.
+    % Visualize by adding the 2-D tuning curves together. (And fisher info
+    % sums).
     res    = zeros(size(X));
+    fisher = zeros(size(X));
     for i = 1:N_x
         for j = 1:N_y
-            h_n     = gaussian2D(m_x(i), m_y(j), N_x * N_y);
-            curve_n = h_n(X, Y);
-            res     = res + curve_n;     
+            % print i,j for progress check
+            [i, j]
+            % define variables and 2D gaussian tuning curve
+            syms x y
+            f(x, y) = exp(-0.5 * ((x - m_x(i))^2 + (y-m_y(j))^2)/(0.55^2)) / (N_x*N_y);
+            % compute each partial derivative
+            dfx     = diff(f, x);
+            dfy     = diff(f, y);
+            % calculate nth tuning curve and its fisher information
+            c_n     = double(f(X, Y));
+            c_n_dx  = double(dfx(X, Y));
+            c_n_dy  = double(dfy(X, Y));
+            fish_n  = (c_n_dx.*c_n_dy).^2 ./ (c_n.^2);
+            % sum results. 
+            res     = res + c_n;
+            fisher  = fisher + fish_n; 
         end
     end
     imagesc(res); colorbar; 
     axis image off;
 end
 
+fig = figure; 
+set(fig, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
+set(fig, 'name', 'Uniform Population 2-D Fisher Info');
+imagesc(fisher); axis image off; 
 
 end

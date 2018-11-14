@@ -12,7 +12,7 @@ function [func] = gaussian2D(mu_x, mu_y, scale)
 func = @TwoDGaussian;
 
     function y = TwoDGaussian(x, y)
-        y = exp(-0.5 * ((x - mu_x).^2 + (y-mu_y).^2)) ./ scale;
+        y = exp(-0.5 * ((x - mu_x).^2 + (y-mu_y).^2)/(0.55^2)) ./ scale;
     end
 
 end
