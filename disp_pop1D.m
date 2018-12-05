@@ -29,10 +29,10 @@ h(x)   = exp(-0.5 * (x^2)/(std^2)) / (n_neurons);
 h_p(x) = diff(h, x);
 
 % Define displacement field
-slope = 0.5;
+slope = 0.8;
 syms x
-f(x)    = slope * x;
-df(x) = diff(f, x);
+f(x)  = slope * sqrt(abs(x));
+df(x) = diff(f, x); 
 
 
 for n = 1:n_neurons
@@ -43,8 +43,8 @@ for n = 1:n_neurons
     fisher   = fisher + fisher_n; 
     
     % warped curves and corresponding fisher information
-    curve_warped_n = double(h(s + f(s) - m(n)));
-    deriv_warped_n = (1 + double(df(x))) .* double(h_p(s + f(s) - m(n)));
+    curve_warped_n = double(h(s - f(s) - m(n)));
+    deriv_warped_n = (1 - double(df(s))) .* double(h_p(s - f(s) - m(n)));
     
     fisher_warped_n = deriv_warped_n.^2 ./ curve_warped_n; 
     fisher_warped   = fisher_warped + fisher_warped_n; 
@@ -72,13 +72,17 @@ ylabel(ax2, 'Displacement Field');
 % plot both sets of fisher information.
 I_conv = mean(fisher(30:170)); 
 plot(ax5, s, fisher);
-plot(ax5, s, ones(size(s)).*I_conv)
+plot(ax5, s, ones(size(s)).*I_conv);
+legend(ax5, {'Measured Fisher Information','Approximate Fisher Information'},'Location','southwest');
 xlabel(ax5, 's');
 ylabel(ax5, 'Fisher Information');
 plot(ax6, s, fisher_warped); 
-plot(ax6, s, ones(size(s)) .* I_conv*(1+slope)^2)
+plot(ax6, s, ones(size(s)) .* I_conv.*double((1-df(s))).^2)  
+legend(ax6, {'Measured Fisher Information','Approximate Fisher Information'},'Location','northwest');
 xlabel(ax6, 's');
 ylabel(ax6, 'Fisher Information');
+
+
 
 
 

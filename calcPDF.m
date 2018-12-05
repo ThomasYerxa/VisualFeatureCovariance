@@ -78,7 +78,7 @@ else
     % variables. 
     for j = 1:nImages
         for k = 1:n_theta
-            for l = 1:n_f
+            for l = 1:n_f        
                 filterScore      = sum(responses(:,:, l, k, j), 'all');
                 prob_joint(k, l) = prob_joint(k, l) + filterScore; 
                 prob_f(l)        = prob_f(l) + filterScore; 

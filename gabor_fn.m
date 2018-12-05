@@ -1,4 +1,4 @@
-function gb=gabor_fn(bw,gamma,psi,lambda,theta)
+function gb=gabor_fn(bw,gamma,psi,lambda,theta, sze)
 % bw    = bandwidth, (1)
 % gamma = aspect ratio, (0.5)
 % psi   = phase shift, (0)
@@ -14,7 +14,7 @@ sz=fix(8*max(sigma_y,sigma_x));
 if mod(sz,2)==0, sz=sz+1;end
 
 % alternatively, use a fixed size
-sz = 100;
+sz = sze;
  
 [x y]=meshgrid(-fix(sz/2):fix(sz/2),fix(sz/2):-1:fix(-sz/2));
 % x (right +)
