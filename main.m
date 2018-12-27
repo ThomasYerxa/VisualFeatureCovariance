@@ -6,6 +6,7 @@ tic;
 
 plotting = false;
 use_gpu  = false;
+sv_vars  = false; 
 
 % Load images
 I = loadImages();
@@ -40,9 +41,6 @@ else
 
 end
 
-% wavelength is inverse of spatial frequency. 
-lambda = 1./f; 
-
 % Orientations in degrees. Includes a regular sampling of orientations
 % and a debug option. 
 orientation_f     = [0.0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5] * 2 * pi /360;
@@ -53,60 +51,7 @@ orientation = orientation_f;
 n_theta     = size(orientation, 2);
 
 % Generate filter bank
-nFilters    = n_waves*n_theta;
-bw          = 1.0;
-ar          = 1.0;
-psi         = 0.0;
-
-%
-G_re = gabor_fn(bw, ar, psi, lambda(1), orientation(1));
-G_im = gabor_fn(bw, ar, psi + pi/2, lambda(1), orientation(1));
-
-% Build G s.t. size(G) = (sz, sz, n_f, n_theta)
-for k = 1:n_theta
-    for l = 1:n_waves
-        if not(and(k == 1, l == 1))
-            G_re(:,:, l, k) = gabor_fn(bw, ar, psi,  lambda(l), orientation(k));
-            G_im(:,:, l, k) = gabor_fn(bw, ar, psi + pi/2, lambda(l), orientation(k));
-        end
-    end
-end
-
-% draw filter bank
-if plotting
-    fig_re = figure;
-    set(fig_re, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
-    set(fig_re, 'name', 'Filter bank -- real')
-    
-    fig_im = figure;
-    set(fig_im, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
-    set(fig_im, 'name', 'Filter bank -- imag')
-    
-    index = 0; 
-    for x = 1:size(G_re,3)
-        for y = 1:size(G_re, 4)
-            index = index + 1; 
-            figure(fig_re); hold on;
-            subplot(8,8,index); hold on;
-            title(['F ' num2str(index)]);
-            imagesc(G_re(:,:,x, y));
-            axis image off;
-            colorbar;
-
-            figure(fig_im); hold on;
-            subplot(8,8,index); hold on;
-            title(['F ' num2str(index)]);
-            imagesc(G_im(:,:,x, y));
-            axis image off;
-            colorbar;
-        
-        end    
-    end
-end
-
-% make complex filter. clear i to make sure you are using sqrt(-1). 
-clear i;
-G = G_re + 1i * G_im;
+G           = filterBank(f, orientation_f, filterSize, plotting); 
 
 % put G and I on GPU
 if use_gpu 
@@ -125,13 +70,15 @@ index = 0;
 % In this case we partition the PDF calculation into batches of 10 images.
 
 % choose whether or not to partition. 
-partition = false;
+partition     = true;
+partition_num = 0;
 
 if partition == false
     mag = zeros([xSize, ySize, n_waves, n_theta, nImages]);
 end
 
 for j=1:nImages
+    tic
     for k = 1:n_theta
         for l = 1:n_waves
             index = index + 1;
@@ -178,28 +125,11 @@ for j=1:nImages
     % check to see whether this is an iteration at which we should
     % calculate an intermediate PDF. Happens at j%10=0 and last image.
     if partition
-         
-        % adjust weight if last partition is not length 10
-        if mod(j, 10) == 0
-            [j_temp, t_temp, f_temp, s_temp] = calcPDF(mag, f, orientation);
-            weight = 10;
-            PDF_j = PDF_j + j_temp*weight; 
-            PDF_t = PDF_j + t_temp*weight; 
-            PDF_f = PDF_j + f_temp*weight; 
-            PDF_s = PDF_j + s_temp*weight; 
-            clear mag; 
-        end 
-        if j == nImages
-            % the last intermediate PDF may have been calculalted using <
-            % 10 images. Reset its weight in the sum accordingly. 
-            [j_temp, t_temp, f_temp, s_temp] = calcPDF(mag, f, orientation);
-            weight = mod(nImages, 10);
-            PDF_j = PDF_j + j_temp*weight; 
-            PDF_t = PDF_j + t_temp*weight; 
-            PDF_f = PDF_j + f_temp*weight; 
-            PDF_s = PDF_j + s_temp*weight; 
-        end
-    end    
+        partition_num = partition_num + 1;
+        save('mag'+string(partition_num), 'mag', '-v7.3');
+        clear('mag');
+    end
+    toc
 end
 
 % Calculate and visualize joint PDF from filter responses
@@ -207,17 +137,19 @@ end
 % if partition is on, we take the final PDF to be the average of all 
 % of the intermediate PDF values that have already been summed. 
 if partition
-    PDF_j = PDF_j/nImages; 
-    PDF_t = PDF_t/nImages; 
-    PDF_f = PDF_f/nImages; 
-    PDF_s = PDF_s/nImages; 
-    
-else
+    % save the variables needed to run calcPDF on the saved "mag#.mat" 
+    % files
+    save('theta', 'orientation');
+    save('f', 'f');
+    save('partition_num', 'partition_num');
+      
+else  
     % else we calculate the total pdf using every filter response. 
     [PDF_j, PDF_t, PDF_f, PDF_s] = calcPDF(mag, f, orientation); 
+    vizPDF(PDF_j, PDF_t, PDF_f, PDF_s, f,orientation);
+
 end
 
 
-vizPDF(PDF_j, PDF_t, PDF_f, PDF_s, f,orientation);
 
 toc;
