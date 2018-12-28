@@ -41,6 +41,12 @@ if loadCode == 0
     if debug
         nImages = 10; % reset nImages to 2 to reduce runtime. 
     end
+    
+    % start index must be below the number of images
+    if startIndex > nImages
+        return;
+    end
+    
     % Collect LMS value arrays, extract M channel (which encodes intensity)
     firstName = images(startIndex).name; 
     [LMS] = rgb2lms(firstName); 
