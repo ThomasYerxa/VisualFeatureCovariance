@@ -126,21 +126,35 @@ for j=1:nImages
     % check to see whether this is an iteration at which we should
     % calculate an intermediate PDF. Happens at j%10=0 and last image.
     if partition
-        mag = single(mag);
-        partition_num = partition_num + 1;
-        save('mag'+string(partition_num), 'mag', '-v7.3');
-        clear('mag');
+        
+        if mod(j, 10) == 0 
+            mag = single(mag);
+            partition_num = partition_num + 1;
+            save('mag'+string(partition_num), 'mag', '-v7.3');
+            clear('mag');
+        end
+        
+        if j == nImages
+            mag = single(mag);
+            partition_num = partition_num + 1;
+            save('mag'+string(partition_num), 'mag', '-v7.3');
+            clear('mag');
+        end
+        
     end
     
     toc;
-    if j == nImages - 1
-       if j > 100
+    
+    % load more images if needed and possible. 
+    if j == nImages
+       if j >= 100
            continue;
        else
            I       = loadImages(j);
            nImages = nImages + size(I, 3);
        end   
     end
+   
 end
 
 % Calculate and visualize joint PDF from filter responses

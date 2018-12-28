@@ -47,22 +47,29 @@ if loadCode == 0
     [M] = LMS(:,:,2);
     
     for i=startIndex+1:nImages
-        i;
+        % only return 50 images at a time. 
         if i > startIndex+50
             continue;
         end
         % some files are mishaped. Skip them. 
-        if i == 17 | i == 34 | i == 36 | i == 50 | i == 61 | i == 65 | i == 80 | i == 104
-            continue;
-        end
         currentFileName = images(i).name;
+        a = size(rgb2lms(currentFileName));
+        b = size(LMS(:, :, :, 1));
+        if a(1) ~= b(1)
+            continue
+        end
+        if sum(a(:,:,2), 'all') <= 1
+            continue
+        end
+        
+        
         LMS(:, :, :, i) = rgb2lms(currentFileName); 
         M(:, :, i) = LMS(:, :, 2, i);  
         fclose('all');
         
-       
-        
+   
     end  
+    
     return;
 end
 
