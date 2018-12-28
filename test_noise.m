@@ -1,8 +1,8 @@
 % Test filters using mkFract to generate noise w/ known frequency
 % distribution
 
-filterSize  = 80;
-plotting    = false; 
+filterSize  = 160;
+plotting    = true; 
 remove_bias = false; 
 % largest possible frequency range given filterSize 
 f      = linspace(1/filterSize,0.5, 9);
@@ -16,7 +16,7 @@ fract_dim = 1;
 stim      = mkFract([512, 512], fract_dim); 
 
 % plot stimulus 
-if plotting
+if true
     figure; hold on; 
     set(gcf, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
     set(gcf, 'name', 'Stimulus 1');

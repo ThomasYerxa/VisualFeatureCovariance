@@ -55,7 +55,8 @@ if plotting
     end
 end
 
-G = G_re + G_im;
+clear i;
+G = G_re + 1i*G_im;
 
 end
 

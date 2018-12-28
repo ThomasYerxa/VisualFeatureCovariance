@@ -1,10 +1,11 @@
 % test PDF calculations on synthetic image
 
 
-plotting = true; 
+plotting   = true; 
 filterSize = 80;
 % largest possible frequency range given filterSize
 f      = linspace(1/filterSize,0.5, 8);
+f      = f(2:end - 1);
 lambda = 1./f; 
 theta  = [0.0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5] * 2 * pi /360;
 
@@ -66,8 +67,8 @@ response_t2 = zeros(1, n_t);
 
 for j = 1:n_f
     for k = 1:n_t
-        G_re = gabor_fn(bw, ar, psi,  lambda(j), orientation(k));
-        G_im = gabor_fn(bw, ar, psi + pi/2,  lambda(j), orientation(k));
+        G_re = gabor_fn(bw, ar, psi,  lambda(j), theta(k), filterSize);
+        G_im = gabor_fn(bw, ar, psi + pi/2,  lambda(j), theta(k), filterSize);
         % visualize filters
         if plotting
             index = index + 1; 
@@ -86,12 +87,12 @@ for j = 1:n_f
             colorbar;
         end
         % calculate response of filter
-        r1             = abs(conv2(stim1, (G_re + 1i*G_im), 'valid'));
+        r1             = abs(conv2(stim1, (G_re + 1i*G_im), 'valid')).^2;
         r1             = sum(r1, 'all');
         response_f1(j) = response_f1(j) + r1;
         response_t1(k) = response_t1(k) + r1;
         
-        r2             = abs(conv2(stim2, (G_re + 1i*G_im), 'valid'));
+        r2             = abs(conv2(stim2, (G_re + 1i*G_im), 'valid')).^2;
         r2             = sum(r2, 'all');
         response_f2(j) = response_f2(j) + r2;
         response_t2(k) = response_t2(k) + r2;
@@ -102,13 +103,13 @@ fig_responses = figure;
 set(fig_responses, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
 set(fig_responses, 'name', 'Filter Responses Stimulus One: harmonic = 5, theta = 22.5');
 subplot(1, 2, 1); hold on; 
-title('Response v. Orientation');
-plot(theta * 360 / (2*pi), response_t1, '*');
-xlabel('Orientation');
+title('Response v. theta');
+plot(theta * 360 / (2*pi), response_t1, '*-');
+xlabel('theta');
 ylabel('Filter Response');
 subplot(1, 2, 2); hold on; 
 title('Response v. Frequency');
-plot(f, response_f1, '*');
+plot(f, response_f1, '*-');
 xlabel('Frequency');
 ylabel('Filter Response')
 
@@ -116,20 +117,20 @@ fig_responses = figure;
 set(fig_responses, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
 set(fig_responses, 'name', 'Filter Responses Stimulus Two: harmonic = 10, theta = 112.5');
 subplot(1, 2, 1); hold on; 
-title('Response v. Orientation');
-plot(theta * 360 / (2*pi), response_t2, '*');
-xlabel('Orientation');
+title('Response v. theta');
+plot(theta * 360 / (2*pi), response_t2, '*-');
+xlabel('theta');
 ylabel('Filter Response');
 subplot(1, 2, 2); hold on; 
 title('Response v. Frequency');
-plot(f, response_f2, '*');
+plot(f, response_f2, '*-');
 xlabel('Frequency');
 ylabel('Filter Response');
 
 % test for filter dependence on magnitude of contrast cd .. 
- G_re      = gabor_fn(bw, ar, psi,  lambda(3), orientation(1));
- G_im      = gabor_fn(bw, ar, psi + pi/2,  lambda(3), orientation(1));
- G         = G + 1i*G_im; 
+ G_re      = gabor_fn(bw, ar, psi,  lambda(3), theta(1), filterSize);
+ G_im      = gabor_fn(bw, ar, psi + pi/2,  lambda(3), theta(1), filterSize);
+ G         = G_re + 1i*G_im; 
  responses = zeros(1,5);
 for k = 1:5
     stim = stim1.*k;
@@ -141,9 +142,9 @@ end
 fig_responses = figure; hold on; 
 set(fig_responses, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
 set(fig_responses, 'name', 'Filter Responses as function of contrast'); 
-title('Response v. Orientation');
+title('Response v. Contrast');
 subplot(1,1,1); hold on; 
-plot([1,2,3,4,5], responses, '*'); 
+plot([1,2,3,4,5], responses, '*-'); 
 xlabel('Stimulus scalar coefficient');
 ylabel('Filter Response');
     

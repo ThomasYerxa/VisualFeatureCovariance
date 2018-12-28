@@ -9,7 +9,7 @@ use_gpu  = false;
 sv_vars  = false; 
 
 % Load images
-I = loadImages();
+I = loadImages(1);
 nImages = size(I, 3);
 
 
@@ -79,6 +79,7 @@ end
 
 for j=1:nImages
     tic
+    
     for k = 1:n_theta
         for l = 1:n_waves
             index = index + 1;
@@ -129,7 +130,16 @@ for j=1:nImages
         save('mag'+string(partition_num), 'mag', '-v7.3');
         clear('mag');
     end
-    toc
+    
+    toc;
+    if j == nImages - 1
+       if j > 100
+           continue;
+       else
+           I       = loadImages(j);
+           nImages = nImages + size(I, 3);
+       end   
+    end
 end
 
 % Calculate and visualize joint PDF from filter responses

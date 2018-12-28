@@ -28,10 +28,11 @@
 %     debug is set to true.
 %-------------------------------------------------------------------------
 
-function [M] = loadImages()
+function [M] = loadImages(startIndex)
+
 
 loadCode = 0;
-debug    = true; 
+debug    = false; 
 
 if loadCode == 0
    % load .TIF files into struct
@@ -41,19 +42,25 @@ if loadCode == 0
         nImages = 10; % reset nImages to 2 to reduce runtime. 
     end
     % Collect LMS value arrays, extract M channel (which encodes intensity)
-    firstName = images(1).name; 
+    firstName = images(startIndex).name; 
     [LMS] = rgb2lms(firstName); 
     [M] = LMS(:,:,2);
     
-    for i=2:nImages
+    for i=startIndex+1:nImages
+        i;
+        if i > startIndex+50
+            continue;
+        end
         % some files are mishaped. Skip them. 
-        if i == 16 | i == 33 | i == 35 | i == 49 | i == 60 | i == 64 | i == 79 | i == 103
-            continue
+        if i == 17 | i == 34 | i == 36 | i == 50 | i == 61 | i == 65 | i == 80 | i == 104
+            continue;
         end
         currentFileName = images(i).name;
         LMS(:, :, :, i) = rgb2lms(currentFileName); 
         M(:, :, i) = LMS(:, :, 2, i);  
         fclose('all');
+        
+       
         
     end  
     return;
