@@ -126,6 +126,7 @@ for j=1:nImages
     % check to see whether this is an iteration at which we should
     % calculate an intermediate PDF. Happens at j%10=0 and last image.
     if partition
+        mag = single(mag);
         partition_num = partition_num + 1;
         save('mag'+string(partition_num), 'mag', '-v7.3');
         clear('mag');
