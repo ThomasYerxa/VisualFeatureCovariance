@@ -64,7 +64,7 @@ if loadCode == 0
         if a(1) ~= b(1)
             continue
         end
-        if sum(a(:,:,2), 'all') <= 1
+        if sum(a, 'all') <= 1
             continue
         end
         
