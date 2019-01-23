@@ -35,7 +35,7 @@ loadCode = 0;
 debug    = false; 
 
 if loadCode == 0
-   % load .TIF files into struct
+    % load .TIF files into struct
     images = dir('*.TIF');
     nImages = length(images); 
     if debug

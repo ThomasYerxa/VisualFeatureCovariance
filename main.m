@@ -8,11 +8,21 @@ plotting = false;
 use_gpu  = false;
 sv_vars  = false; 
 
-% Load images
-I = loadImages(1);
-nImages = size(I, 3);
+% Load image directories
+loadCode = 0; 
 
+% loadCode = 0 --> loading from McGill Tabby
+if loadCode == 0
+    % load .TIF files into struct
+    images = dir('*.TIF');
+    nImages = length(images); 
+end
 
+% reduce nImages for debugging
+nImages = 2; 
+
+% NEED TO FIND BETTER WAY TO PLOT IMAGES
+%{ 
 if plotting
     
     figure; hold on;
@@ -24,22 +34,13 @@ if plotting
         imagesc(I(:,:,x));
         axis image off;
         colormap gray; colorbar
+ 
     end
-end
-
-% choose frequencies to be linearlly or logarithmically spaced
-% choose n_f to be a low value for debugging. 
-logSpacing = false;
-if logSpacing
-    filterSize = 80;
-    n_waves    = 8;
-    f          = logspace(1/filterSize,0.5, 8);
-else
-    filterSize = 100;
-    n_waves    = 8;
-    f          = linspace(3/filterSize,0.5, 8);
-
-end
+%}
+    
+filterSize = 100;
+n_waves    = 8;
+f          = linspace(3/filterSize,0.5, 8);
 
 % Orientations in degrees. Includes a regular sampling of orientations
 % and a debug option. 
@@ -53,128 +54,38 @@ n_theta     = size(orientation, 2);
 % Generate filter bank
 G           = filterBank(f, orientation_f, filterSize, plotting); 
 
-% put G and I on GPU
-if use_gpu 
-    G_gpu = gpuArray(G);
-    I_gpu = gpuArray(I);
-end 
-
-% Apply filter bank to each image, summing the response values for each
-% image.
-
-[xSize, ySize]  = size(conv2(I(:, :, 1), G(:, :, 1, 1),'valid'));
-
+% Apply filter bank to each image
 index = 0;
-% When working with a large number of images, we may not be able to store
-% evevry convolution in one very large matrix (too much memory is used).
-% In this case we partition the PDF calculation into batches of 10 images.
-
-% choose whether or not to partition. 
-partition     = true;
-partition_num = 0;
-
-if partition == false
-    mag = zeros([xSize, ySize, n_waves, n_theta, nImages]);
-end
-
 for j=1:nImages
     tic
+    % Load image, convert to intensity values
+    currentName = images(j).name; 
+    [LMS] = rgb2lms(currentName); 
+    [I] = LMS(:,:,2);
     
     for k = 1:n_theta
         for l = 1:n_waves
-            index = index + 1;
+            % Plot the current image
             if plotting
                 figure; hold on;
                 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
                 set(gcf, 'name', ['F ' num2str(index)])
             end
             
-            % if partition is true the size of mag nevery gros above
-            % [xSize , ySize , n_f , n_theta , 10]
-            if partition
-                % get responses of filter (l, k) to image j. Save to mag
-               if use_gpu
-                    conv_tmp                       = abs(conv2(I_gpu(:, :, j), G_gpu(:, :, l, k),'valid'));
-                    mag(:, :, l, k, mod(j-1,10)+1) = gather(conv_tmp);
-                    
-                    % clear mag from GPU Memory, reset I and G
-                    gpuDevice(1);
-                    I_gpu = gpuArray(I);
-                    G_gpu = gpuArray(G); 
-                    
-               else
-                    conv_tmp                       = abs(conv2(I(:, :, j), G(:, :, l, k),'valid'));
-                    mag(:, :, l, k, mod(j-1,10)+1) = conv_tmp;
-               end
-                  
-            else
-                % note the last index of mag is not bounded modularly. 
-                % get responses of filter (l, k) to image j. Save to mag
-                conv_tmp           = abs(conv2(I(:, :, j), G(:, :, l, k),'valid'));
-                mag(:, :, l, k, j) = conv_tmp;
-
-                if plotting
-                    subplot(5,5,j); hold on;
-                    imagesc(conv_tmp);
-                    axis image off;
-                    colorbar;
-                end
-            end 
+            % Calculate response of image J to filter LK
+            mag(:, :, l, k) = abs(conv2(I, G(:, :, l, k),'valid'));
+            mag             = single(mag);
+            index;
+            index           = index + 1;
+            
         end
     end
-    
-    % check to see whether this is an iteration at which we should
-    % calculate an intermediate PDF. Happens at j%10=0 and last image.
-    if partition
-        
-        if mod(j, 10) == 0 
-            mag = single(mag);
-            partition_num = partition_num + 1;
-            save('mag'+string(partition_num), 'mag', '-v7.3');
-            clear('mag');
-        end
-        
-        if j == nImages
-            mag = single(mag);
-            partition_num = partition_num + 1;
-            save('mag'+string(partition_num), 'mag', '-v7.3');
-            clear('mag');
-        end
-        
-    end
-    
-    toc;
-    
-    % load more images if needed and possible. 
-    if j == nImages
-       if j >= 100
-           continue;
-       else
-           I       = loadImages(j);
-           nImages = nImages + size(I, 3);
-       end   
-    end
-   
-end
+    save('mag_'+string(j), 'mag', '-v7.3');
+    clear('mag');
+    toc
+end   
 
-% Calculate and visualize joint PDF from filter responses
-
-% if partition is on, we take the final PDF to be the average of all 
-% of the intermediate PDF values that have already been summed. 
-if partition
-    % save the variables needed to run calcPDF on the saved "mag#.mat" 
-    % files
-    save('theta', 'orientation');
-    save('f', 'f');
-    save('partition_num', 'partition_num');
-      
-else  
-    % else we calculate the total pdf using every filter response. 
-    [PDF_j, PDF_t, PDF_f, PDF_s] = calcPDF(mag, f, orientation); 
-    vizPDF(PDF_j, PDF_t, PDF_f, PDF_s, f,orientation);
-
-end
-
-
+save('f', 'f');
+save('orientation','orientation');
 
 toc;
