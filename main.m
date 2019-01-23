@@ -9,17 +9,26 @@ use_gpu  = false;
 sv_vars  = false; 
 
 % Load image directories
-loadCode = 0; 
+loadCode = 1; 
 
 % loadCode = 0 --> loading from McGill Tabby
 if loadCode == 0
     % load .TIF files into struct
     images = dir('*.TIF');
-    nImages = length(images); 
 end
 
+% loadCode = 1 --> loading from van Hateren
+if loadCode == 1
+    % load .iml files into struct
+    images = dir('*.iml'); 
+end
+nImages = length(images);
+
 % reduce nImages for debugging
-nImages = 2; 
+debug = true; 
+if debug
+    nImages = 2; 
+end
 
 % NEED TO FIND BETTER WAY TO PLOT IMAGES
 %{ 
@@ -58,10 +67,18 @@ G           = filterBank(f, orientation_f, filterSize, plotting);
 index = 0;
 for j=1:nImages
     tic
-    % Load image, convert to intensity values
     currentName = images(j).name; 
-    [LMS] = rgb2lms(currentName); 
-    [I] = LMS(:,:,2);
+    if loadCode == 0
+        % Load image, convert to intensity values
+        [LMS] = rgb2lms(currentName); 
+        [I] = LMS(:,:,2);
+    end
+    if loadCode == 1
+        w = 1536; h = 1024;
+        f = fopen(currentName, 'rb','ieee-be');
+        temp = fread(f, [w, h], 'uint16');
+        [I] = temp(4:1532, 4:1020);
+    end
     
     for k = 1:n_theta
         for l = 1:n_waves
@@ -75,7 +92,6 @@ for j=1:nImages
             % Calculate response of image J to filter LK
             mag(:, :, l, k) = abs(conv2(I, G(:, :, l, k),'valid'));
             mag             = single(mag);
-            index;
             index           = index + 1;
             
         end
