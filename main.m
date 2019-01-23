@@ -96,7 +96,12 @@ for j=1:nImages
             
         end
     end
-    save('mag_'+string(j), 'mag', '-v7.3');
+    if loadCode == 0
+        save('mag_mcgill_'+string(j), 'mag', '-v7.3');
+    end
+     if loadCode == 0
+        save('mag_vanhateren_'+string(j), 'mag', '-v7.3');
+    end
     clear('mag');
     toc
 end   
