@@ -14,12 +14,12 @@ n_t = size(theta, 2);
 
 % desgin test stimuli
 stim_harmonic = [5, 10];
-stim_angle    = [22.5, 112.5]; 
+stim_angle    = [0, 112.5]; 
 stim1         = mkSine(800, stim_harmonic(1));
 stim1         = imrotate(stim1, stim_angle(1), 'bilinear', 'crop');
 stim1         = stim1(200:600, 200:600);
 
-stim2         = mkSine(800, stim_harmonic(2));
+stim2         = mkSine(800, stim_harmonic(1));
 stim2         = imrotate(stim2, stim_angle(2), 'bilinear', 'crop');
 stim2         = stim2(200:600, 200:600);
 
@@ -46,7 +46,7 @@ psi         = 0.0;
 
 
 % set figure variables if plotting.
-if plotting
+if false
     fig_re = figure;
     set(fig_re, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
     set(fig_re, 'name', 'Filter bank -- real')
@@ -70,7 +70,7 @@ for j = 1:n_f
         G_re = gabor_fn(bw, ar, psi,  lambda(j), theta(k), filterSize);
         G_im = gabor_fn(bw, ar, psi + pi/2,  lambda(j), theta(k), filterSize);
         % visualize filters
-        if plotting
+        if false
             index = index + 1; 
             figure(fig_re); hold on;
             subplot(8,8,index); hold on;
@@ -141,13 +141,45 @@ end
 
 fig_responses = figure; hold on; 
 set(fig_responses, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
-set(fig_responses, 'name', 'Filter Responses as function of contrast'); 
+%set(fig_responses, 'name', 'Filter Responses as function of contrast'); 
 title('Response v. Contrast');
 subplot(1,1,1); hold on; 
 plot([1,2,3,4,5], responses, '*-'); 
 xlabel('Stimulus scalar coefficient');
 ylabel('Filter Response');
     
-        
+% make figure 
+figure; hold on;
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.5]);
+f      = linspace(1/filterSize,0.5, 9);
+f      = f(2:end - 1);
+theta  = [0.0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5] %* 2 * pi /360;
+G      = filterBank(f, theta, filterSize, false); 
+
+responses = calcResponses(G, stim2);
+[PDF_j, PDF_t, PDF_f, PDF_s] = calcPDF(responses.^2, f, theta); 
+
+subplot(1, 3, 1);
+imagesc(stim2);
+title('Grating Stimulus');
+axis image off; colormap gray; axis square;
+
+subplot(1,3,2); 
+plot(f, PDF_f,'-*'); 
+xlabel('Frequency (Cycles per Pixel)');
+ylabel('Probability');
+title('Spatial Frequency');
+axis square; 
+
+subplot(1,3,3);
+plot(theta, PDF_t, '-*'); 
+xlabel('Orientation (Degrees)');
+ylabel('Probability');
+title('Orientation'); 
+axis square; 
+
+
+
+
         
         

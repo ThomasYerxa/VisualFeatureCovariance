@@ -9,7 +9,7 @@ use_gpu  = false;
 sv_vars  = false; 
 
 % Load image directories
-loadCode = 1; 
+loadCode = 0; 
 
 % loadCode = 0 --> loading from McGill Tabby
 if loadCode == 0
@@ -48,12 +48,14 @@ if plotting
 %}
     
 filterSize = 100;
-n_waves    = 8;
-f          = linspace(3/filterSize,0.5, 8);
+n_waves    = 16;
+f          = linspace(3/filterSize,0.5, n_waves);
 
 % Orientations in degrees. Includes a regular sampling of orientations
 % and a debug option. 
-orientation_f     = [0.0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5] * 2 * pi /360;
+orientation_f     = linspace(0, 180, 16) * 2 * pi /360;
+orientation_f     = orientation_f(1:end-1); 
+
 orientation_debug = [0.0,45.0, 90.0] * 2 * pi /360 ;
 
 % choose orientation option 

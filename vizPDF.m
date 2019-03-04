@@ -18,11 +18,13 @@
 
 function a = vizPDF(PDF_j, PDF_t, PDF_f, PDF_s, f,orientation)
 
+
 % set return value (arbitrary)
 a = 0;
 % convert orientation to degrees
 orientation = orientation * 360 /(2*pi); 
 % truncate f to 3 decimal places for display
+%f = log(f);
 f = f - rem(f, 0.001);
 % set logScale
 logScale = false; 
@@ -45,7 +47,7 @@ set(fig_joint, 'Units', 'Normalized', 'OuterPosition', [0.1, 0.1, 0.9, 0.9]);
 set(fig_joint, 'name', 'Joint Distributions');
 
 ax1 = subplot(1,2,1); 
-
+set(ax1, 'XScale', 'log'); 
 imagesc(ax1, PDF_j); colorbar; 
 set(ax1, 'xtick', xticks, 'ytick', yticks);
 set(ax1, 'xticklabels', f, 'yticklabels', orientation);
@@ -72,26 +74,26 @@ set(fig_ind, 'name', 'Individual Distributions');
 
 % First axis contains the PDF over orientation 
 ax3 = subplot(1,2,1);
-plot(ax3, orientation, PDF_t, '*');
+plot(ax3, orientation, PDF_t, '-*');
 axis([-inf inf 0 1]);
 xlabel('Orientation (Degrees)');
 ylabel('Probability');
-set(ax3, 'xtick', [0.0, 45.0, 90.0, 135.0], 'ytick', [0.0, 0.5, 1.0]);
+set(ax3, 'xtick', [0.0, 45.0, 90.0, 135.0, 180], 'ytick', [0.0, 0.5, 1.0]);
 title('PDF for Orientation');
 
 % Second axis contains PDF over spatial frequency. 
 % if logScale is true, plot with log-log scale. 
 ax4 = subplot(1,2,2);
-plot(ax4, f, PDF_f, '*');
-if logScale
+plot(ax4, f, PDF_f, '-*');
+if true
     set(ax4, 'XScale', 'log', 'YScale', 'log'); 
 end
-axis([-inf inf 0 1]);
+%axis([-inf inf 0 1]);
 set(ax4, 'xtick', f, 'ytick', [0.0, 0.5, 1.0]);
 title('PDF for Frequency');
 xtickangle(ax4, 90);
-xlabel('Frequency (cycles/pixels)');
-ylabel('Probability');
+xlabel('Log Frequency (cycles/pixels)');
+ylabel('Log Probability');
 % ---- END SECOCND FIGURE 
 
 end
